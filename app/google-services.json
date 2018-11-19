@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "397105319745",
+    "firebase_url": "https://bingoonlinegame-95ada.firebaseio.com",
+    "project_id": "bingoonlinegame-95ada",
+    "storage_bucket": "bingoonlinegame-95ada.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397105319745:android:ce86e376f5d6058a",
+        "android_client_info": {
+          "package_name": "arvindandroid.com.arvind.bingoonlinegame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "397105319745-kmjms8a31vtvs7vbn4mqoj4ood1pd7me.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "arvindandroid.com.arvind.bingoonlinegame",
+            "certificate_hash": "c80c02245b2bc441eefc708afc1ca1c456bb2ab4"
+          }
+        },
+        {
+          "client_id": "397105319745-hs5bf4n4nrrbm0023n6470mm9cvcblc0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpTo2YqZurKjDaCICBr03dgA0Ez64L8J4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397105319745-hs5bf4n4nrrbm0023n6470mm9cvcblc0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
