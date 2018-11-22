@@ -70,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("397105319745-kmjms8a31vtvs7vbn4mqoj4ood1pd7me.apps.googleusercontent.com")
+                .requestIdToken("397105319745-hs5bf4n4nrrbm0023n6470mm9cvcblc0.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
 
@@ -101,7 +101,6 @@ public class LoginActivity extends AppCompatActivity {
             public void onCancel() {
                 Log.i("Login","Facebook login cancel");
                 updateUI(null);
-
 
             }
 
@@ -255,6 +254,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         ProgressDialogUtils.cancelLoading();
+        User.setCurrentUser(user.getDisplayName(),user.getPhotoUrl().toString());
         if(user!=null) {
             Intent intent = new Intent(LoginActivity.this, OptionsActivity.class);
             startActivity(intent);

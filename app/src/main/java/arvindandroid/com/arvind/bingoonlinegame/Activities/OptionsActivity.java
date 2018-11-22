@@ -1,6 +1,7 @@
 package arvindandroid.com.arvind.bingoonlinegame.Activities;
 
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,7 +37,7 @@ public class OptionsActivity extends AppCompatActivity {
         addDifferentFragment(PlayOptionFragment.newInstance());
     }
 
-    private void addDifferentFragment(PlayOptionFragment fragment) {
+    private void addDifferentFragment(Fragment fragment) {
         FragmentManager fragmentManager=getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.frameLayout,fragment).commit();
     }

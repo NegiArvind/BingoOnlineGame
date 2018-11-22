@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -27,7 +29,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.kaopiz.kprogresshud.KProgressHUD;
 import com.squareup.picasso.Picasso;
+
+import java.util.Objects;
 
 import arvindandroid.com.arvind.bingoonlinegame.Models.Request;
 import arvindandroid.com.arvind.bingoonlinegame.Models.User;
@@ -36,37 +41,59 @@ import arvindandroid.com.arvind.bingoonlinegame.Utils.DialogUtils;
 import arvindandroid.com.arvind.bingoonlinegame.Utils.ProgressDialogUtils;
 import arvindandroid.com.arvind.bingoonlinegame.ViewHolders.OnlinePlayerViewHolder;
 
-public class PlayOptionFragment extends Fragment {
 
-    private CardView playOnlineCardView;
+public class PlayOptionFragment extends Fragment implements View.OnClickListener {
+
+    private CardView playOnlineCardView,rateUsCardView;
     private Context context;
     private RecyclerView onlinePlayersRecyclerView;
     private GridLayoutManager gridLayoutManager;
     private DatabaseReference usersReference;
     private FirebaseAuth firebaseAuth;
     private FirebaseRecyclerAdapter<User,OnlinePlayerViewHolder> onlinePlayerRecyclerAdapter;
+    private KProgressHUD kProgressHUD;
+    private AlertDialog onlinePlayerAlertDialog;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
         View view=inflater.inflate(R.layout.play_options_fragment,container,false);
         context=getActivity();
         usersReference= FirebaseDatabase.getInstance().getReference("Users");
         firebaseAuth=FirebaseAuth.getInstance();
         checkAnyRequests(); //Check the request continuously if any
         playOnlineCardView=view.findViewById(R.id.playOnlineCardView);
-        playOnlineCardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                createOnlinePlayerDialog();
-            }
-        });
+        rateUsCardView=view.findViewById(R.id.rateUsCardView);
+        playOnlineCardView.setOnClickListener(this);
+        rateUsCardView.setOnClickListener(this);
         return view;
     }
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId())
+        {
+            case R.id.playOnlineCardView:
+                createOnlinePlayerDialog();
+                break;
+
+            case R.id.rateUsCardView:
+                addDifferentFragment(GameFragment.newInstance());
+                break;
+        }
+    }
+
+    private void addDifferentFragment(Fragment fragment) {
+        FragmentManager fragmentManager=getFragmentManager();
+        if (fragmentManager != null) {
+            fragmentManager.beginTransaction().replace(R.id.frameLayout,fragment).commit();
+        }
+    }
+
 
     private void createOnlinePlayerDialog() {
-        AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
-        alertDialog.setMessage("Choose your Opponent");
+        onlinePlayerAlertDialog=new AlertDialog.Builder(context).create();
+        onlinePlayerAlertDialog.setMessage("Choose your Opponent");
 
         LayoutInflater layoutInflater=LayoutInflater.from(context);
         View view=layoutInflater.inflate(R.layout.online_players_layout,null,false);
@@ -78,8 +105,8 @@ public class PlayOptionFragment extends Fragment {
         onlinePlayersRecyclerView.setLayoutManager(gridLayoutManager);
         showAllOnlinePlayers();
 
-        alertDialog.setView(view);
-        alertDialog.show();
+        onlinePlayerAlertDialog.setView(view);
+        onlinePlayerAlertDialog.show();
     }
 
     private void showAllOnlinePlayers() {
@@ -92,7 +119,7 @@ public class PlayOptionFragment extends Fragment {
                 boolean isMe=firebaseAuth.getCurrentUser().getUid().equalsIgnoreCase(onlinePlayerRecyclerAdapter.getRef(position).getKey());
                 Log.i("online ",model.isOnline() +" "+isMe);
                 if(model.isOnline()&& !isMe){
-                    showAllOnlinePlayer(viewHolder,model,onlinePlayerRecyclerAdapter.getRef(position).getKey());
+                    setOnlinePlayerData(viewHolder,model,onlinePlayerRecyclerAdapter.getRef(position).getKey());
                 }
                 else{
                     viewHolder.playerImageView.setVisibility(View.GONE);
@@ -104,13 +131,16 @@ public class PlayOptionFragment extends Fragment {
         onlinePlayersRecyclerView.setAdapter(onlinePlayerRecyclerAdapter);
     }
 
-    private void showAllOnlinePlayer(OnlinePlayerViewHolder viewHolder, final User user, final String playerId) {
+    private void setOnlinePlayerData(OnlinePlayerViewHolder viewHolder, final User user, final String playerId) {
         Log.i("Playerid",playerId);
         Picasso.with(context).load(user.getImageUrl()).into(viewHolder.playerImageView);
         viewHolder.playerNameTextView.setText(user.getUsername());
         viewHolder.playerImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(onlinePlayerAlertDialog.isShowing()) {
+                    onlinePlayerAlertDialog.dismiss();
+                }
                 onPlayerClick(playerId,user.getUsername());
             }
         });
@@ -134,6 +164,7 @@ public class PlayOptionFragment extends Fragment {
                     //Storing request object also in current user object so that we know that he has send request
                     Request myRequest = new Request();
                     myRequest.setTo(playerUid);
+                    myRequest.setToName(playerName);
                     myRequest.setRequestAccept("true");
                     usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").setValue(myRequest);
                     checkBothPlayerRequestContinuous(playerUid);
@@ -141,7 +172,6 @@ public class PlayOptionFragment extends Fragment {
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
     }
@@ -154,8 +184,9 @@ public class PlayOptionFragment extends Fragment {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if(dataSnapshot.exists()){
-                    if(dataSnapshot.child("from").exists()){
+                    if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("from")){
                         String fromName=dataSnapshot.child("fromName").getValue(String.class);
+                        Log.i("request sendet name ",fromName);
                         showRequestAlertDialog(fromName);
                     }
                 }
@@ -189,24 +220,36 @@ public class PlayOptionFragment extends Fragment {
         alertDialog.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, int which) {
-                DialogUtils.showLoadingDialog(context);
+                dialog.dismiss();
+                showKProgress();
                 //If player will accept the request then we need to update Request object.
-                manipulatingAcceptRequest(true,dialog);
+                manipulatingAcceptRequest(true);
             }
         });
         alertDialog.setNegativeButton("Deny", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                dialog.dismiss();
                 //If player will deny the request then we need to update Request object.
-                manipulatingAcceptRequest(false,dialog);
+                manipulatingAcceptRequest(false);
             }
         });
         alertDialog.show();
     }
 
+    private void showKProgress() {
+        kProgressHUD=KProgressHUD.create(context)
+                .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                .setLabel("Please wait")
+                .setDetailsLabel("Getting you in")
+                .setCancellable(false)
+                .setAnimationSpeed(2)
+                .setDimAmount(0.5f)
+                .show();
+    }
+
     //This below method will update the acceptRequest field of Request object.
-    private void manipulatingAcceptRequest(final boolean isAccept, final DialogInterface dialogInterface){
+    private void manipulatingAcceptRequest(final boolean isAccept){
         usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -217,12 +260,11 @@ public class PlayOptionFragment extends Fragment {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if(task.isSuccessful()){
-                                        DialogUtils.cancelLoading();
+                                        kProgressHUD.dismiss();
                                         goForPlay();
                                     }
                                 }
                             });
-                            dialogInterface.dismiss();
                         }else{
                             usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").child("requestAccept").setValue("false");
                         }
@@ -236,28 +278,26 @@ public class PlayOptionFragment extends Fragment {
 
         //When request is denied by the user then i am not waiting for completion of
         // setting the request object into the firebase.
-        if(dialogInterface!=null && !isAccept)
-            dialogInterface.dismiss();
+//        if(dialogInterface!=null && !isAccept)
+//            dialogInterface.dismiss();
     }
 
     private void checkBothPlayerRequestContinuous(String opponentPlayerUid) {
         usersReference.child(opponentPlayerUid).child("request").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(dataSnapshot.exists()){
-                    String requestAccept=dataSnapshot.child("requestAccept").getValue(String.class);
-                    Log.i("requestAccept "," "+requestAccept);
-                    if(requestAccept!=null) {
+                    if (Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("requestAccept")) {
+                        String requestAccept = dataSnapshot.getValue(String.class);
+//                        String requestAccept=dataSnapshot.child("requestAccept").getValue(String.class);
+                        Log.i("requestAccept ", " " + requestAccept);
                         if (requestAccept.equalsIgnoreCase("true")) {
                             ProgressDialogUtils.cancelLoading();
                             goForPlay(); //if both player accepted request
-                        }else{
+                        } else {
                             //Discard
                         }
                     }
-                }
             }
-
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
@@ -283,13 +323,18 @@ public class PlayOptionFragment extends Fragment {
     private void goForPlay() {
         Log.i("start","playing the game");
         Toast.makeText(context,"Start playing game",Toast.LENGTH_LONG).show();
+        if(onlinePlayerAlertDialog.isShowing()) {
+            onlinePlayerAlertDialog.dismiss();
+        }
+        if (getFragmentManager() != null) {
+            getFragmentManager().beginTransaction().replace(R.id.frameLayout,GameFragment.newInstance()).commit();
+        }
     }
 
     private int countNoOfColumns(Context context) {
         DisplayMetrics displayMetrics=context.getResources().getDisplayMetrics();
         float dpWidth=displayMetrics.widthPixels/displayMetrics.density;
-        int noOfColumns=(int)(dpWidth/ 90);//Here 90 is my grid cell width
-        return noOfColumns;
+        return (int)(dpWidth/ 90);
     }
 
     public static PlayOptionFragment newInstance() {
@@ -298,4 +343,6 @@ public class PlayOptionFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
+
 }

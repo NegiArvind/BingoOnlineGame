@@ -8,4 +8,11 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="bingo_button">
+        <item name="android:layout_width">0sp</item>
+        <item name="android:layout_height">0sp</item>
+        <item name="android:textColor">@color/blackColor</item>
+        <item name="android:background">@drawable/round_rectangle_button</item>
+    </style>
+
 </resources>

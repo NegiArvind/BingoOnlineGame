@@ -3,6 +3,7 @@ package arvindandroid.com.arvind.bingoonlinegame.Models;
 public class Request {
 
     public String to;
+    public String toName;
     public String from;
     public String fromName;
     public String requestAccept;
@@ -10,11 +11,20 @@ public class Request {
     public Request() {
     }
 
-    public Request(String to, String from, String fromName, String requestAccept) {
+    public Request(String to, String toName, String from, String fromName, String requestAccept) {
         this.to = to;
+        this.toName = toName;
         this.from = from;
         this.fromName = fromName;
         this.requestAccept = requestAccept;
+    }
+
+    public String getToName() {
+        return toName;
+    }
+
+    public void setToName(String toName) {
+        this.toName = toName;
     }
 
     public String getTo() {
