@@ -1,23 +1,22 @@
 package arvindandroid.com.arvind.bingoonlinegame.Utils;
 
-import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Window;
 
-import arvindandroid.com.arvind.bingoonlinegame.R;
+public class ProgressDialogUtils {
 
-public class ProgressUtils {
+    private static ProgressDialog progressDialog;
 
-    private static Dialog progressDialog;
-
-    public static void showLoadingDialog(Context context) {
+    public static void showLoadingDialog(Context context,String message) {
         if (!(progressDialog != null && progressDialog.isShowing())) {
-            progressDialog = new Dialog(context);
-            progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+            progressDialog = new ProgressDialog(context);
             progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            progressDialog.setContentView(R.layout.progress_dialog);
+//            progressDialog.setContentView(R.layout.progress_dialog);
             progressDialog.setCancelable(true);
+            if(message!=null)
+            progressDialog.setMessage(message);
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.show();
         }

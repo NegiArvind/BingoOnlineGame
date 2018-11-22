@@ -15,7 +15,6 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -31,10 +30,15 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
-import arvindandroid.com.arvind.bingoonlinegame.Utils.ProgressUtils;
+import arvindandroid.com.arvind.bingoonlinegame.Utils.ProgressDialogUtils;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -42,12 +46,13 @@ public class LoginActivity extends AppCompatActivity {
     private LoginButton facebookLoginButton;
     private Button googleSignInButton;
     private FirebaseAuth firebaseAuth;
+    private DatabaseReference usersReference;
+    private FirebaseDatabase firebaseDatabase;
 
     private int RC_SIGN_IN=9001;
 
 
-
-    private GoogleSignInClient mGoogleSignInClient;
+    public static GoogleSignInClient mGoogleSignInClient;
     private ProgressDialog progressDialog;
 
     @Override
@@ -55,6 +60,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         firebaseAuth=FirebaseAuth.getInstance();
+        firebaseDatabase=FirebaseDatabase.getInstance();
+        usersReference=firebaseDatabase.getReference();
 
         /***************************Google Sign In***************/
 
@@ -63,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestIdToken("397105319745-hs5bf4n4nrrbm0023n6470mm9cvcblc0.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
 
@@ -72,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         googleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ProgressUtils.showLoadingDialog(LoginActivity.this);
+                ProgressDialogUtils.showLoadingDialog(LoginActivity.this,"Loading..");
                 signInWithGoogle();
             }
         });
@@ -95,7 +102,6 @@ public class LoginActivity extends AppCompatActivity {
                 Log.i("Login","Facebook login cancel");
                 updateUI(null);
 
-
             }
 
             @Override
@@ -104,7 +110,6 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI(null);
             }
         });
-
     }
 
     private void signInWithGoogle() {
@@ -120,7 +125,7 @@ public class LoginActivity extends AppCompatActivity {
         Log.i("resultCode",String.valueOf(resultCode));
         Log.i("requestCode", String.valueOf(requestCode));
 
-        if(requestCode==RC_SIGN_IN && resultCode==RESULT_OK&& data!=null){
+        if(requestCode==RC_SIGN_IN && resultCode==RESULT_OK){
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleGoogleTask(task);
         }
@@ -147,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
 
         Log.i("google id token",account.getIdToken());
 
-        ProgressUtils.showLoadingDialog((LoginActivity.this));
+        ProgressDialogUtils.showLoadingDialog((LoginActivity.this),"Processing..");
 
         AuthCredential authCredential= GoogleAuthProvider.getCredential(account.getIdToken(),null);
         firebaseAuth.signInWithCredential(authCredential)
@@ -158,6 +163,7 @@ public class LoginActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.i("google login", "signInWithCredential:success");
                             FirebaseUser user = firebaseAuth.getCurrentUser();
+                            saveUserDetailIntoFirebaseDatabase(user);
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -173,7 +179,7 @@ public class LoginActivity extends AppCompatActivity {
     private void handleFacebookAccessToken(AccessToken accessToken) {
 
         Log.i("handle facebook token",String.valueOf(accessToken));
-        ProgressUtils.showLoadingDialog(LoginActivity.this);
+        ProgressDialogUtils.showLoadingDialog(LoginActivity.this,"Processing...");
         AuthCredential authCredential= FacebookAuthProvider.getCredential(accessToken.getToken());
         firebaseAuth.signInWithCredential(authCredential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -182,6 +188,7 @@ public class LoginActivity extends AppCompatActivity {
                         if(task.isSuccessful()){
                             Log.i("login facebook","sign with credential");
                             FirebaseUser user=firebaseAuth.getCurrentUser();
+                            saveUserDetailIntoFirebaseDatabase(user);
                             updateUI(user);
                         }
                         else{
@@ -198,38 +205,70 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if(firebaseAuth.getCurrentUser()!=null){
-//            updateUI(firebaseAuth.getCurrentUser());
+            Log.i("authe",firebaseAuth.getCurrentUser().getDisplayName());
+            makeUserOnline(firebaseAuth.getCurrentUser());
+            updateUI(firebaseAuth.getCurrentUser());
         }
     }
 
-    private void signOut(){
-        for (UserInfo userInfo :firebaseAuth.getCurrentUser().getProviderData()) {
-            //Sign out from firebase
-            firebaseAuth.signOut();
+    private void makeUserOnline(final FirebaseUser currentUser) {
+        if(currentUser!=null) {
+            final DatabaseReference uidReference=usersReference.child("Users").child(currentUser.getUid());
+            uidReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot){
+                    if(dataSnapshot.exists()){
+                        usersReference.child("Users").child(currentUser.getUid()).child("online").setValue(true);
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            if (userInfo.getProviderId().equals("facebook.com")) {
-                Log.d("TAG", "User is signed in with Facebook");
-                //Sign out from facebook
-                LoginManager.getInstance().logOut();
-            }
-            else{
-                // Google sign out
-                mGoogleSignInClient.signOut().addOnCompleteListener(this,
-                        new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                updateUI(null);
-                            }
-                        });
-            }
+                }
+            });
         }
     }
+
+//    private void signOut(){
+//        for (UserInfo userInfo :firebaseAuth.getCurrentUser().getProviderData()) {
+//            //Sign out from firebase
+//            firebaseAuth.signOut();
+//
+//            if (userInfo.getProviderId().equals("facebook.com")) {
+//                Log.d("TAG", "User is signed in with Facebook");
+//                //Sign out from facebook
+//                LoginManager.getInstance().logOut();
+//            }
+//            else{
+//                // Google sign out
+//                mGoogleSignInClient.signOut().addOnCompleteListener(this,
+//                        new OnCompleteListener<Void>() {
+//                            @Override
+//                            public void onComplete(@NonNull Task<Void> task) {
+//                                updateUI(null);
+//                            }
+//                        });
+//            }
+//        }
+//    }
 
     private void updateUI(FirebaseUser user) {
-        ProgressUtils.cancelLoading();
+        ProgressDialogUtils.cancelLoading();
+        User.setCurrentUser(user.getDisplayName(),user.getPhotoUrl().toString());
         if(user!=null) {
             Intent intent = new Intent(LoginActivity.this, OptionsActivity.class);
             startActivity(intent);
+        }
+    }
+
+    private void saveUserDetailIntoFirebaseDatabase(FirebaseUser firebaseUser) {
+
+        if(firebaseUser!=null) {
+            User user = new User();
+            user.setUsername(firebaseUser.getDisplayName());
+            user.setImageUrl(String.valueOf(firebaseUser.getPhotoUrl()));
+            user.setOnline(true);
+            usersReference.child("Users").child(firebaseUser.getUid()).setValue(user);
         }
     }
 }
