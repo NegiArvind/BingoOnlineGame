@@ -1,0 +1,145 @@
+{
+  "Users" : {
+    "123" : {
+      "game" : {
+        "choosenNumber" : 0,
+        "myChance" : false,
+        "noOfBingo" : 0,
+        "noOfGameIWin" : 0,
+        "totalGame" : 1,
+        "wantToPlayAgain" : false
+      },
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "request" : {
+        "from" : "Yunoyj0O3tMxLrRT6ko0NY5TfJq2",
+        "fromName" : "Arvind Negi",
+        "requestAccept" : "true"
+      },
+      "username" : "Anisha"
+    },
+    "1234" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "priya"
+    },"123" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "shalini"
+    },"131" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Meghat"
+    },"4" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Barkha"
+    },"5" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Chudel"
+    },
+    "12341" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "priya"
+    },"1231" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "shalini"
+    },"1311" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Meghat"
+    },"41" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Barkha"
+    },"51" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Chudel"
+    },
+    "12342" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "priya"
+    },"1232" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "shalini"
+    },"1312" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Meghat"
+    },"42" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Barkha"
+    },"52" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Chudel"
+    },
+    "123421" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "priya"
+    },"12321" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "shalini"
+    },"13121" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Meghat"
+    },"421" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Barkha"
+    },"521" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Chudel"
+    },
+    "123422" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "priya"
+    },"12322" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "shalini"
+    },"13122" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Meghat"
+    },"422" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Barkha"
+    },"522" : {
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "username" : "Chudel"
+    },
+    "Yunoyj0O3tMxLrRT6ko0NY5TfJq2" : {
+      "game" : {
+        "choosenNumber" : 0,
+        "myChance" : true,
+        "noOfBingo" : 0,
+        "noOfGameIWin" : 0,
+        "totalGame" : 1,
+        "wantToPlayAgain" : false
+      },
+      "imageUrl" : "https://graph.facebook.com/521847631650079/picture",
+      "online" : true,
+      "request" : {
+        "requestAccept" : "true",
+        "to" : "123",
+        "toName" : "Anisha"
+      },
+      "username" : "Arvind Negi"
+    }
+  }
+}

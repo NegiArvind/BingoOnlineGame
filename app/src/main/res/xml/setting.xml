@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory>
+
+        <SwitchPreference
+            android:key="volume"
+            app:iconSpaceReserved="false"
+            android:splitTrack="true"
+            android:title="Volume"/>
+
+        <Preference
+            android:key="rateMe"
+            app:iconSpaceReserved="false"
+            android:title="Rate Me"/>
+
+        <Preference
+            android:key="reportBug"
+            android:title="Report a bug"
+            app:iconSpaceReserved="false"
+            android:summary="Tell me if you found any problem"/>
+
+        <Preference
+            android:key="emailMe"
+            android:title="Email Me"
+            app:iconSpaceReserved="false"
+            android:summary="Tell me your suggestions"/>
+
+        <Preference
+            android:key="sendFeedback"
+            android:title="Send Feedback"
+            app:iconSpaceReserved="false"
+            android:summary="Give feedback if you like this app"/>
+
+        <Preference
+            android:key="tellYourFriend"
+            android:title="Tell Your Friend"
+            app:iconSpaceReserved="false"
+            android:summary="Share this app with friends"/>
+
+        <Preference
+            android:key="logOut"
+            android:title="Log Out"
+            app:iconSpaceReserved="false"/>
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:iconSpaceReserved="false"
+        android:title="Others">
+
+        <Preference
+            android:key="privacyPolicy"
+            android:title="Privacy Policy"
+            app:iconSpaceReserved="false"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

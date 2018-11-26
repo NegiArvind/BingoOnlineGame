@@ -8,19 +8,49 @@
     android:orientation="vertical"
     tools:context=".Activities.LoginActivity">
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/facebook_login_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="330dp"
-        android:layout_marginBottom="30dp" />
+    <ImageView
+        android:layout_weight="3"
+        android:layout_marginTop="20sp"
+        android:layout_marginStart="20sp"
+        android:layout_marginEnd="20sp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:src="@drawable/bingo_single_card_image" />
 
-    <Button
-        android:id="@+id/googleSignInButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Continue with Google"/>
+    <LinearLayout
+        android:layout_weight="2"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <com.facebook.login.widget.LoginButton
+            android:id="@+id/facebook_login_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="bottom"
+            android:layout_marginTop="40sp"
+            android:layout_marginBottom="25dp" />
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/googleSignInButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold"
+            android:textColor="@color/blackColor"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Widget.PopupMenu.Small"
+            android:text="@string/authentication_message"/>
+
+    </LinearLayout>
+
+
 
 </LinearLayout>

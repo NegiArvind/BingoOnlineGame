@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="start"
+    android:background="@drawable/chat_left_message_round_rectangle"
+    android:layout_marginStart="5sp"
+    android:layout_marginEnd="5sp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/chatGettingTextView"
+        android:layout_margin="8sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Arvind bhai ji kese ho"
+        android:textColor="@color/blackColor"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"/>
+
+    <View
+        android:background="@color/whiteColor"
+        android:layout_width="match_parent"
+        android:layout_height="7dp"/>
+
+</LinearLayout>

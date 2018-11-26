@@ -1,68 +1,145 @@
 package arvindandroid.com.arvind.bingoonlinegame.Activities;
 
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.Toast;
-
-import com.facebook.login.LoginManager;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.kaopiz.kprogresshud.KProgressHUD;
 
+import arvindandroid.com.arvind.bingoonlinegame.Fragments.ChooseDefaultBingoMatrixFragment;
+import arvindandroid.com.arvind.bingoonlinegame.Fragments.GameFragment;
+import arvindandroid.com.arvind.bingoonlinegame.Fragments.HowToPlayFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.PlayOptionFragment;
+import arvindandroid.com.arvind.bingoonlinegame.Fragments.SettingFragment;
 import arvindandroid.com.arvind.bingoonlinegame.R;
 
 public class OptionsActivity extends AppCompatActivity {
 
-    private Button logOutButton;
+    private DatabaseReference userReference;
+    private FirebaseAuth firebaseAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
-
-//        logOutButton=findViewById(R.id.logOutButton);
-//        logOutButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                signOut();
-//            }
-//        });
-        addDifferentFragment(PlayOptionFragment.newInstance());
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true); //settting back arrow on activity
+        userReference= FirebaseDatabase.getInstance().getReference("Users");
+        firebaseAuth=FirebaseAuth.getInstance();
+        addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
     }
 
-    private void addDifferentFragment(Fragment fragment) {
+    private void addDifferentFragment(Fragment fragment,String tag) {
         FragmentManager fragmentManager=getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.frameLayout,fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.frameLayout,fragment,tag).commit();
     }
 
-    private void signOut(){
-        for (UserInfo userInfo : FirebaseAuth.getInstance().getCurrentUser().getProviderData()) {
-            //Sign out from firebase
-            FirebaseAuth.getInstance().signOut();
+    public void setActionBarTitle(String title){
+        getSupportActionBar().setTitle(title);
+    }
 
-            if (userInfo.getProviderId().equals("facebook.com")) {
-                Log.d("TAG", "User is signed in with Facebook");
-                //Sign out from facebook
-                LoginManager.getInstance().logOut();
-            }
-            else{
-                // Google sign out
-                LoginActivity.mGoogleSignInClient.signOut().addOnCompleteListener(this,
-                        new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(OptionsActivity.this,"Log out successfully",Toast.LENGTH_SHORT).show();
-                                //updateUI(null);
-                            }
-                        });
-            }
+    private void exitAlertDialog() {
+
+        new AlertDialog.Builder(this)
+                .setMessage("Do you really want to exit?")
+                .setTitle("Exit")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finishAffinity();
+                        finish();
+                    }
+                }).show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(item.getItemId()==android.R.id.home){
+            onBackPressed();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager fragmentManager=getSupportFragmentManager();
+        if(fragmentManager.findFragmentByTag("defaultBingoFragment") instanceof ChooseDefaultBingoMatrixFragment){
+            addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
+        }else if(fragmentManager.findFragmentByTag("gameFragment") instanceof GameFragment){
+            leaveGameAlertDialog();
+        }else if(fragmentManager.findFragmentByTag("settingFragment") instanceof SettingFragment ||
+                fragmentManager.findFragmentByTag("howToPlayFragment") instanceof HowToPlayFragment) {
+            addDifferentFragment(PlayOptionFragment.newInstance(), "playOptionFragment");
+        }else{
+            //if there is a request object
+            userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
+            makeUserOffline();
+        }
+    }
+
+    private void makeUserOffline() {
+//        showKProgress();
+        exitAlertDialog();
+        if(firebaseAuth.getCurrentUser()!=null) {
+            userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
+                        if(itemSnapshot.getKey().equalsIgnoreCase("online")){
+                            userReference.child(firebaseAuth.getCurrentUser().getUid()).child("online").setValue(false);
+                             //once user is set to offline then we will show alert dialog
+                            break;
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+
+    private void leaveGameAlertDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Game Quit")
+                .setMessage("Do you really want to quit this game?")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
+                        //Also delete user game object,chat object and request object
+                        deleteGameRequestAndChatObject();
+                    }
+                }).show();
+    }
+    private void deleteGameRequestAndChatObject(){
+        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("game").removeValue();
+        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
+        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
     }
 }

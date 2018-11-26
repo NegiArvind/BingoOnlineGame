@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:minHeight="200dp"
+    android:minWidth="300dp"
+    android:background="@color/md_blue_50"
+    android:layout_marginBottom="30sp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/wonOrLossTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="You Won This Match"
+        android:textSize="40dp"
+        android:textStyle="bold"
+        android:gravity="center"
+        />
+
+    <TextView
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Do You Want To Play Again ?"
+        android:textColor="@color/blackColor"
+        android:textSize="30sp"/>
+
+    <LinearLayout
+        android:layout_marginTop="10sp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="30sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/noButton"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_marginStart="20sp"
+            android:layout_marginEnd="20sp"
+            android:layout_height="match_parent"
+            android:text="NO"
+            android:textStyle="bold"
+            android:background="@drawable/result_alert_round_rectangle"
+            android:textColor="@color/blackColor"/>
+
+        <Button
+            android:id="@+id/yesButton"
+            android:layout_marginStart="20sp"
+            android:layout_marginEnd="20sp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="YES"
+            android:background="@drawable/result_alert_round_rectangle"
+            android:textStyle="bold"
+            android:textColor="@color/blackColor"/>
+
+    </LinearLayout>
+</LinearLayout>
