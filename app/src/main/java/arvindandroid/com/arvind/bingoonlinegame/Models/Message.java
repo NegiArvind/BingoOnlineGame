@@ -1,6 +1,8 @@
 package arvindandroid.com.arvind.bingoonlinegame.Models;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message{
 
     public String message;
     public boolean seen;

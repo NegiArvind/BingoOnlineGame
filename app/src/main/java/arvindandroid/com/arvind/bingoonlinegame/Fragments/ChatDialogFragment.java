@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 import arvindandroid.com.arvind.bingoonlinegame.Common;
@@ -49,7 +50,6 @@ public class ChatDialogFragment extends DialogFragment {
     private ImageView tickImageView;
     private DatabaseReference userReference;
     private Context context;
-    private Calendar calendar;
     private int widthPixels;
     private int sendMessagePosition=0;
     private ImageView dialogOpponentImageivew;
@@ -66,7 +66,6 @@ public class ChatDialogFragment extends DialogFragment {
         dialogOpponentImageivew=view.findViewById(R.id.dialogOpponentImageivew);
         dialogOpponentTextView=view.findViewById(R.id.dialogOpponentTextView);
         userReference= FirebaseDatabase.getInstance().getReference("Users");
-        calendar = Calendar.getInstance(Locale.getDefault());
         Picasso.with(context).load(Common.opponentImageUrl).into(dialogOpponentImageivew);
         dialogOpponentTextView.setText(Common.opponentUserName);
 
@@ -180,20 +179,24 @@ public class ChatDialogFragment extends DialogFragment {
         Intent intent=new Intent();
 //        intent.putExtra("myMessageArrayList", myMessageArrayList);
         intent.putExtra("chatMessageArrayList", chatMessageArrayList);
-        getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK,intent);
+        if (getTargetFragment() != null) {
+            getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK,intent);
+        }
     }
 
     private void startCheckingMessages(final View rootView) {
-        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").orderByKey().addChildEventListener(new ChildEventListener() {
+        userReference.child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("chat").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 Message message=dataSnapshot.getValue(Message.class);
-                //Removing the message object from firebase after add in arraylist.
-                userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").child(dataSnapshot.getKey()).removeValue();
-                if(!chatMessageArrayList.contains(message)) {
+                if(message!=null) {
+                    //Removing the message object from firebase after add in arraylist.
+                    userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").child(dataSnapshot.getKey()).removeValue();
+                    if (!chatMessageArrayList.contains(message)) {
 //                    myMessageArrayList.add(message);
-                    chatMessageArrayList.add(message);
-                    showOpponentMessage(rootView, message.getMessage());
+                        chatMessageArrayList.add(message);
+                        showOpponentMessage(rootView, message.getMessage());
+                    }
                 }
             }
 
@@ -239,24 +242,17 @@ public class ChatDialogFragment extends DialogFragment {
                     //then this method will be called.
                     Message message=dataSnapshot.getValue(Message.class);
 
-                    //While adding object into firebase i was making setMine false(setMine true for me while filling in
-                    // arraylist) so they will be equal only if i will set its value true.
-                    message.setMine(true);
-                    Log.i("message",message.getMessage() +" "+message.isSeen() + " "+message.isMine());
-//                        int position = myMessageArrayList.indexOf(message);
-//                    if(myMessageArrayList.contains(message)){
-//                        int position=myMessageArrayList.indexOf(message);
-//                        message.setSeen(true);
-//                        Log.i("Position",String.valueOf(position));
-//                        myMessageArrayList.set(position,message);
-////                        myMessageArrayList.remove(position);
-////                        myMessageArrayList.add(position,message);
-//                    }
-                    if(chatMessageArrayList.contains(message)){
-                        int position=chatMessageArrayList.indexOf(message);
-                        message.setSeen(true);
-                        Log.i("Position",String.valueOf(position));
-                        chatMessageArrayList.set(position,message);
+                    if(message!=null) {
+                        //While adding object into firebase i was making setMine false(setMine true for me while filling in
+                        // arraylist) so they will be equal only if i will set its value true.
+                        message.setMine(true);
+                        Log.i("message", message.getMessage() + " " + message.isSeen() + " " + message.isMine());
+                        if (chatMessageArrayList.contains(message)) {
+                            int position = chatMessageArrayList.indexOf(message);
+                            message.setSeen(true);
+                            Log.i("Position", String.valueOf(position));
+                            chatMessageArrayList.set(position, message);
+                        }
                     }
                 }
 
@@ -275,12 +271,16 @@ public class ChatDialogFragment extends DialogFragment {
 
     private void showOpponentMessage(View rootView,String message) {
 
-        LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.chat_left_raw_layout, null, false);
-        chatFromTextView = view.findViewById(R.id.chatGettingTextView);
-        chatFromTextView.setText(message);
-        ViewGroup viewGroup = rootView.findViewById(R.id.messagesLinearLayout);
-        viewGroup.addView(view,sendMessagePosition, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        sendMessagePosition+=1; //This position is important. it will decide where to set which view.
+        LayoutInflater layoutInflater = (LayoutInflater) Objects.requireNonNull(getContext()).getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view;
+        if (layoutInflater != null) {
+            view = layoutInflater.inflate(R.layout.chat_left_raw_layout, null, false);
+            chatFromTextView = view.findViewById(R.id.chatGettingTextView);
+            chatFromTextView.setText(message);
+            ViewGroup viewGroup = rootView.findViewById(R.id.messagesLinearLayout);
+            viewGroup.addView(view,sendMessagePosition, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            sendMessagePosition+=1; //This position is important. it will decide where to set which view.
+        }
+
     }
 }

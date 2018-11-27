@@ -44,6 +44,7 @@ import com.google.firebase.database.ValueEventListener;
 import arvindandroid.com.arvind.bingoonlinegame.Common;
 import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
+import arvindandroid.com.arvind.bingoonlinegame.Utils.NetworkCheck;
 import arvindandroid.com.arvind.bingoonlinegame.Utils.ProgressDialogUtils;
 
 public class LoginActivity extends AppCompatActivity {
@@ -78,7 +79,11 @@ public class LoginActivity extends AppCompatActivity {
         setGooglePlusButtonText(googleSignInButton);
         googleSignInButton.setSize(SignInButton.SIZE_WIDE);
 
-
+        if(!NetworkCheck.isNetworkAvailable(LoginActivity.this)){
+            Toast.makeText(LoginActivity.this,"No internet connection",Toast.LENGTH_LONG).show();
+            finishAffinity();
+            finish();
+        }
         // Configure Google Sign In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("397105319745-hs5bf4n4nrrbm0023n6470mm9cvcblc0.apps.googleusercontent.com")

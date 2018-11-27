@@ -129,7 +129,7 @@
         android:gravity="center"
         android:textColor="@color/blackColor"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-        android:text="Please first set the matrix or choose our default bingo matrix"/>
+        android:text="Please first set the matrix or choose our default bingo matrix "/>
 
     <include layout="@layout/bingo_grid_layout1"
         android:layout_weight="5"

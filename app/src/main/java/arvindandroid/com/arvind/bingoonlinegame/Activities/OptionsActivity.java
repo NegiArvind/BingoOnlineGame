@@ -11,6 +11,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -18,12 +20,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Objects;
+
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.ChooseDefaultBingoMatrixFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.GameFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.HowToPlayFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.PlayOptionFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.SettingFragment;
 import arvindandroid.com.arvind.bingoonlinegame.R;
+import arvindandroid.com.arvind.bingoonlinegame.Utils.NetworkCheck;
 
 public class OptionsActivity extends AppCompatActivity {
 
@@ -33,9 +38,15 @@ public class OptionsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true); //settting back arrow on activity
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true); //settting back arrow on activity
         userReference= FirebaseDatabase.getInstance().getReference("Users");
         firebaseAuth=FirebaseAuth.getInstance();
+
+        if(!NetworkCheck.isNetworkAvailable(OptionsActivity.this)){
+            Toast.makeText(OptionsActivity.this,"No internet connection",Toast.LENGTH_LONG).show();
+            finishAffinity();
+            finish();
+        }
         checkUpdateOfApp();
         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
     }
@@ -95,7 +106,7 @@ public class OptionsActivity extends AppCompatActivity {
     }
 
     public void setActionBarTitle(String title){
-        getSupportActionBar().setTitle(title);
+        Objects.requireNonNull(getSupportActionBar()).setTitle(title);
     }
 
     private void exitAlertDialog() {
@@ -140,7 +151,7 @@ public class OptionsActivity extends AppCompatActivity {
             addDifferentFragment(PlayOptionFragment.newInstance(), "playOptionFragment");
         }else{
             //if there is a request object
-            userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
+            userReference.child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("request").removeValue();
             makeUserOffline();
         }
     }
@@ -153,7 +164,7 @@ public class OptionsActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                        if(itemSnapshot.getKey().equalsIgnoreCase("online")){
+                        if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("online")){
                             userReference.child(firebaseAuth.getCurrentUser().getUid()).child("online").setValue(false);
                              //once user is set to offline then we will show alert dialog
                             break;
@@ -189,7 +200,7 @@ public class OptionsActivity extends AppCompatActivity {
                 }).show();
     }
     private void deleteGameRequestAndChatObject(){
-        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("game").removeValue();
+        userReference.child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("game").removeValue();
         userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
         userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
     }
