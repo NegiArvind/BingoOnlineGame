@@ -1,5 +1,21 @@
 <resources>
-    <string name="app_name">BingoOnlineGame</string>
+    <string name="app_name">Bingo Online</string>
     <string name="facebook_app_id">2148938478660064</string>
     <string name="fb_login_protocol_scheme">fb2148938478660064</string>
+
+    <string name="how_to_play_string">At first you need to open your internet.On clicking play online
+    button, you will be redirected to the page where you can choose your opponent.Once you choose your opponent, a request
+    will be sent to your opponent. After accepting your request both players will be redirected to the game page.
+    In game page you will find a 5*5 empty cell matrix. You can fill this matrix either by choosing the default bingo matrix(which you will
+    get by pressing a green icon at the bottom) or by yourself by clicking on the cell. Once you fill the matrix you need to start
+    the game by pressing start button and wait for the opponent. When done you can start the game.What you have to do is select
+    any number from the cell which you want to mark. Your opponent will also mark this number. Now your opponent will do the same thing
+    and you have to mark that number which he/she chooses. This process will continue. You need to make "BINGO" as fast as possible.
+    if every number in a row or column or diagonally is colored then one letter of bingo will be appeared at the bottom.
+    Winner will be declared on the basis that who made his/her "BINGO" word first.While playing game you can also do chatting
+    with your opponent.</string>
+
+    <string name="authentication_message">To play online you need to login first!</string>
+    <string name="privacy_policy_url">https://termsfeed.com/privacy-policy/b9406d8f4b4b985c11f93d97662ed67c</string>
+
 </resources>

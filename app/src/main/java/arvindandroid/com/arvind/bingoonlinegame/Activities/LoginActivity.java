@@ -1,14 +1,18 @@
 package arvindandroid.com.arvind.bingoonlinegame.Activities;
 
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -21,6 +25,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -36,6 +41,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import arvindandroid.com.arvind.bingoonlinegame.Common;
 import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
 import arvindandroid.com.arvind.bingoonlinegame.Utils.ProgressDialogUtils;
@@ -44,7 +50,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private CallbackManager callbackManager;
     private LoginButton facebookLoginButton;
-    private Button googleSignInButton;
+    private SignInButton googleSignInButton;
     private FirebaseAuth firebaseAuth;
     private DatabaseReference usersReference;
     private FirebaseDatabase firebaseDatabase;
@@ -52,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
     private int RC_SIGN_IN=9001;
 
 
-    public static GoogleSignInClient mGoogleSignInClient;
+    private GoogleSignInClient mGoogleSignInClient;
     private ProgressDialog progressDialog;
 
     @Override
@@ -62,10 +68,15 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth=FirebaseAuth.getInstance();
         firebaseDatabase=FirebaseDatabase.getInstance();
         usersReference=firebaseDatabase.getReference();
+        getSupportActionBar().setTitle("Bingo Online");
+
+
 
         /***************************Google Sign In***************/
 
         googleSignInButton=findViewById(R.id.googleSignInButton);
+        setGooglePlusButtonText(googleSignInButton);
+        googleSignInButton.setSize(SignInButton.SIZE_WIDE);
 
 
         // Configure Google Sign In
@@ -80,7 +91,13 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ProgressDialogUtils.showLoadingDialog(LoginActivity.this,"Loading..");
-                signInWithGoogle();
+                mGoogleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful())
+                            signInWithGoogle();
+                    }
+                });
             }
         });
 
@@ -110,6 +127,19 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI(null);
             }
         });
+    }
+
+    private void setGooglePlusButtonText(SignInButton signInButton) {
+        // Find the TextView that is inside of the SignInButton and set its text
+        for (int i = 0; i < signInButton.getChildCount(); i++) {
+            View v = signInButton.getChildAt(i);
+
+            if (v instanceof TextView) {
+                TextView tv = (TextView) v;
+                tv.setText("Sign in with Google");
+                return;
+            }
+        }
     }
 
     private void signInWithGoogle() {
@@ -207,20 +237,35 @@ public class LoginActivity extends AppCompatActivity {
         if(firebaseAuth.getCurrentUser()!=null){
             Log.i("authe",firebaseAuth.getCurrentUser().getDisplayName());
             makeUserOnline(firebaseAuth.getCurrentUser());
+            deleteGameChatAndRequestIfExist();//it will delete the game,chat and request object from user node. if By chance user
+            //remove your app from home button then game,chat and request object will not be deleted.So i deleting it here.
             updateUI(firebaseAuth.getCurrentUser());
+//            checkUpdateOfApp(); //Want to show update dialog if i will make any update in my app.
         }
     }
 
+    private void deleteGameChatAndRequestIfExist() {
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("game").removeValue();
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
+    }
+
+
+
+
     private void makeUserOnline(final FirebaseUser currentUser) {
         if(currentUser!=null) {
-            final DatabaseReference uidReference=usersReference.child("Users").child(currentUser.getUid());
-            uidReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            usersReference.child("Users").child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot){
-                    if(dataSnapshot.exists()){
-                        usersReference.child("Users").child(currentUser.getUid()).child("online").setValue(true);
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
+                        if(itemSnapshot.getKey().equalsIgnoreCase("online")){
+                            usersReference.child("Users").child(currentUser.getUid()).child("online").setValue(true);
+                            break;
+                        }
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -254,6 +299,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void updateUI(FirebaseUser user) {
         ProgressDialogUtils.cancelLoading();
+        Common.myUid=firebaseAuth.getCurrentUser().getUid();
         User.setCurrentUser(user.getDisplayName(),user.getPhotoUrl().toString());
         if(user!=null) {
             Intent intent = new Intent(LoginActivity.this, OptionsActivity.class);
@@ -270,5 +316,30 @@ public class LoginActivity extends AppCompatActivity {
             user.setOnline(true);
             usersReference.child("Users").child(firebaseUser.getUid()).setValue(user);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        exitAlertDialog();
+    }
+
+    private void exitAlertDialog() {
+
+        new AlertDialog.Builder(this)
+                .setMessage("Do you really want to exit?")
+                .setTitle("Exit")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finishAffinity();
+                        finish();
+                    }
+                }).show();
     }
 }

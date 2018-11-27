@@ -12,7 +12,7 @@
         android:layout_height="0dp">
 
         <LinearLayout
-            android:layout_marginStart="10sp"
+            android:layout_marginStart="20sp"
             android:layout_marginEnd="20sp"
             android:orientation="horizontal"
             android:layout_marginTop="10sp"
@@ -23,15 +23,17 @@
                 android:orientation="horizontal"
                 android:layout_weight="1"
                 android:layout_width="0dp"
+                android:background="@color/md_blue_grey_100"
                 android:layout_height="match_parent">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:layout_width="30sp"
                     android:layout_height="30sp"
                     android:id="@+id/gamePlayerImageView"
-                    android:src="@drawable/play_button"/>
+                    android:src="@color/md_grey_400"/>
 
                 <TextView
+                    android:layout_marginStart="5sp"
                     android:id="@+id/gamePlayerNameTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="30sp"
@@ -46,6 +48,7 @@
                 android:orientation="horizontal"
                 android:layout_weight="1"
                 android:layout_width="0dp"
+                android:background="@color/md_blue_grey_100"
                 android:layout_height="match_parent">
 
 
@@ -53,22 +56,23 @@
                     android:layout_width="30sp"
                     android:layout_height="30sp"
                     android:id="@+id/gameOpponentImageview"
-                    android:src="@drawable/play_button"/>
+                    android:src="@color/md_grey_400"/>
 
                 <TextView
+                    android:layout_marginStart="5sp"
                     android:layout_width="wrap_content"
                     android:layout_height="30sp"
                     android:textStyle="bold"
                     android:gravity="center"
                     android:id="@+id/gameOpponentNameTextView"
-                    android:text="Arvind Negi"
+                    android:text="Opponent"
                     android:textColor="@color/blackColor"/>
 
             </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_marginStart="10sp"
+            android:layout_marginStart="20sp"
             android:layout_marginEnd="20sp"
             android:orientation="horizontal"
             android:layout_width="match_parent"
@@ -77,7 +81,7 @@
 
             <TextView
                 android:id="@+id/playerGamePointTextView"
-                android:text="15"
+                android:text="0"
                 android:gravity="center"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
                 android:layout_width="wrap_content"
@@ -88,14 +92,15 @@
                 android:layout_marginStart="15sp"
                 android:layout_weight="1"
                 android:layout_width="0dp"
-                android:layout_height="30sp"
+                android:layout_height="wrap_content"
+                android:minHeight="50sp"
                 android:layout_marginEnd="20sp"
                 style="?android:attr/progressBarStyleHorizontal" />
 
             <TextView
                 android:id="@+id/opponentPlayerGamePointTextView"
                 android:layout_marginStart="5sp"
-                android:text="15"
+                android:text="0"
                 android:gravity="center"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Light.Widget.PopupMenu.Large"
                 android:layout_width="wrap_content"
@@ -106,7 +111,8 @@
                 android:layout_marginStart="10sp"
                 android:layout_weight="1"
                 android:layout_width="0dp"
-                android:layout_height="30sp"
+                android:layout_height="wrap_content"
+                android:minHeight="50sp"
                 android:layout_marginEnd="20sp"
                 style="?android:attr/progressBarStyleHorizontal"/>
 
@@ -123,7 +129,7 @@
         android:gravity="center"
         android:textColor="@color/blackColor"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-        android:text="Now its your turn"/>
+        android:text="Please first set the matrix or choose our default bingo matrix"/>
 
     <include layout="@layout/bingo_grid_layout1"
         android:layout_weight="5"
@@ -167,7 +173,7 @@
             android:layout_width="0dp"
             android:layout_weight="2"
             android:layout_marginStart="3sp"
-            android:layout_marginRight="3sp"
+            android:layout_marginEnd="3sp"
             android:background="@android:color/transparent"
             android:layout_height="match_parent"
             android:src="@drawable/default_bingo_image"/>
@@ -183,9 +189,9 @@
             android:layout_height="match_parent">
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/watch_later_image"/>
+                android:id="@+id/chatCountImageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"/>
 
         </LinearLayout>
 

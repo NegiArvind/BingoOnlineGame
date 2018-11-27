@@ -21,14 +21,14 @@
         <ImageButton
             android:id="@+id/settingImageButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:backgroundTint="@color/md_blue_100"
             android:src="@drawable/setting_image"/>
 
     </LinearLayout>
 
     <LinearLayout
-        android:layout_marginTop="50sp"
+        android:layout_marginTop="80sp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:layout_gravity="center"

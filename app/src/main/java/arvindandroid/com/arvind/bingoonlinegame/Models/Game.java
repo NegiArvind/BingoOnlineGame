@@ -1,29 +1,39 @@
 package arvindandroid.com.arvind.bingoonlinegame.Models;
 
 public class Game {
-    public int noOfGame;
+    public int noOfGameIWin;
     public int totalGame;
-    public boolean wantToPlayAgain;
+    public int wantToPlayAgain; // 1 for no and 2 for yes and initially it will be zero
     public boolean myChance;
     public int noOfBingo;
+    public int choosenNumber;
 
     public Game() {
     }
 
-    public Game(int noOfGame, int totalGame, boolean wantToPlayAgain, boolean myChance, int noOfBingo) {
-        this.noOfGame = noOfGame;
+    public Game(int noOfGameIWin, int totalGame, int wantToPlayAgain, boolean myChance, int noOfBingo, int choosenNumber) {
+        this.noOfGameIWin = noOfGameIWin;
         this.totalGame = totalGame;
         this.wantToPlayAgain = wantToPlayAgain;
         this.myChance = myChance;
         this.noOfBingo = noOfBingo;
+        this.choosenNumber = choosenNumber;
     }
 
-    public int getNoOfGame() {
-        return noOfGame;
+    public int getChoosenNumber() {
+        return choosenNumber;
     }
 
-    public void setNoOfGame(int noOfGame) {
-        this.noOfGame = noOfGame;
+    public void setChoosenNumber(int choosenNumber) {
+        this.choosenNumber = choosenNumber;
+    }
+
+    public int getNoOfGameIWin() {
+        return noOfGameIWin;
+    }
+
+    public void setNoOfGameIWin(int noOfGameIWin) {
+        this.noOfGameIWin = noOfGameIWin;
     }
 
     public int getTotalGame() {
@@ -34,11 +44,11 @@ public class Game {
         this.totalGame = totalGame;
     }
 
-    public boolean isWantToPlayAgain() {
+    public int isWantToPlayAgain() {
         return wantToPlayAgain;
     }
 
-    public void setWantToPlayAgain(boolean wantToPlayAgain) {
+    public void setWantToPlayAgain(int wantToPlayAgain) {
         this.wantToPlayAgain = wantToPlayAgain;
     }
 
