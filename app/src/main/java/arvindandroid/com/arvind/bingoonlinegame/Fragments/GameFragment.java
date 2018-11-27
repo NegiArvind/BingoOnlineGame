@@ -41,8 +41,7 @@ import com.kaopiz.kprogresshud.KProgressHUD;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 import arvindandroid.com.arvind.bingoonlinegame.Activities.OptionsActivity;
 import arvindandroid.com.arvind.bingoonlinegame.Common;
@@ -50,8 +49,6 @@ import arvindandroid.com.arvind.bingoonlinegame.Models.Game;
 import arvindandroid.com.arvind.bingoonlinegame.Models.Message;
 import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
-import arvindandroid.com.arvind.bingoonlinegame.Utils.DialogUtils;
-
 public class GameFragment extends Fragment implements View.OnClickListener {
 
     private FirebaseAuth firebaseAuth;
@@ -93,11 +90,17 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     private SharedPreferences sharedPreferences;
     private MediaPlayer mediaPlayer,bingoMediaPlayer;
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        context=getContext();
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.game_fragment_layout,container,false);
-        context=getActivity();
+//        context=getContext();
         playerImageView=view.findViewById(R.id.gamePlayerImageView);
         opponentPlayerImageview=view.findViewById(R.id.gameOpponentImageview);
         playerNameTextView=view.findViewById(R.id.gamePlayerNameTextView);
@@ -256,13 +259,15 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     }
 
     private void setPlayersPhotosAndName() {
-        Picasso.with(context).load(User.getCurrentUser().getImageUrl()).into(playerImageView);
-        playerNameTextView.setText(User.getCurrentUser().getUsername());
-        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
+        if (User.getCurrentUser() != null) {
+            Picasso.with(context).load(User.getCurrentUser().getImageUrl()).into(playerImageView);
+            playerNameTextView.setText(User.getCurrentUser().getUsername());
+        }
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("toName")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("toName")){
                         opponentPlayerNameTextView.setText(itemSnapshot.getValue(String.class));
                     }else if(itemSnapshot.getKey().equalsIgnoreCase("to")){
                         opponentPlayerUid=itemSnapshot.getValue(String.class);
@@ -272,7 +277,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 for(DataSnapshot itemSnapshot2:dataSnapshot.getChildren()){
-                                    if(itemSnapshot2.getKey().equalsIgnoreCase("imageUrl")){
+                                    if(Objects.requireNonNull(itemSnapshot2.getKey()).equalsIgnoreCase("imageUrl")){
                                         Picasso.with(context).load(itemSnapshot2.getValue(String.class)).into(opponentPlayerImageview);
                                         break;
                                     }
@@ -294,7 +299,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 for(DataSnapshot itemSnapshot2:dataSnapshot.getChildren()){
-                                    if(itemSnapshot2.getKey().equalsIgnoreCase("imageUrl")){
+                                    if(Objects.requireNonNull(itemSnapshot2.getKey()).equalsIgnoreCase("imageUrl")){
                                         Picasso.with(context).load(itemSnapshot2.getValue(String.class)).into(opponentPlayerImageview);
                                         break;
                                     }
@@ -317,12 +322,12 @@ public class GameFragment extends Fragment implements View.OnClickListener {
 
     private void setPlayersGamePoint() {
         Log.i("setting","The player game point");
-        userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int flag=0;
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("game")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")){
                         flag=1;
                         Game game=itemSnapshot.getValue(Game.class);
                         if(game!=null) {
@@ -349,7 +354,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int flag=0;
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("game")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")){
                         flag=1;
                         Game game=itemSnapshot.getValue(Game.class);
                         if(game!=null) {
@@ -387,7 +392,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.getKey().equalsIgnoreCase("game")){
+                if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("game")){
                     showOpponentLeaveAlertDialog();
                 }
             }
@@ -414,7 +419,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                         dialogInterface.dismiss();
                     }
                 })
-                .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                .setPositiveButton("quit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
@@ -425,18 +430,25 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     }
 
     private void deleteGameRequestAndChatObject(){
-        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").removeValue();
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("game").removeValue();
         userReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").removeValue();
         userReference.child(firebaseAuth.getCurrentUser().getUid()).child("chat").removeValue();
     }
 
     private void startCheckingMessages() {
-           userReference.child(firebaseAuth.getCurrentUser().getUid()).child("chat").addChildEventListener(new ChildEventListener() {
+           userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("chat").addChildEventListener(new ChildEventListener() {
                @Override
                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                    chatMessageArrayList.add(dataSnapshot.getValue(Message.class));
                    chatCount+=1;
-                   setChatCountTextDrawable(chatCount);
+
+                   //This below method is used to check whether used has opened dialog fragment or not
+                   if(getFragmentManager()!=null){
+                       Fragment prev=getFragmentManager().findFragmentByTag("dialog");
+                       if(prev==null){
+                           setChatCountTextDrawable(chatCount);
+                       }
+                   }
                }
 
                @Override
@@ -541,20 +553,27 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.chatLinearLayout:
                 startButtonSound();
-                FragmentTransaction fragmentTransaction=getFragmentManager().beginTransaction();
-                Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+                FragmentTransaction fragmentTransaction= null;
+                Fragment prev = null;
+                if (getFragmentManager() != null) {
+                    fragmentTransaction = getFragmentManager().beginTransaction();
+                    prev = getFragmentManager().findFragmentByTag("dialog");
+                }
                 if (prev != null) {
                     fragmentTransaction.remove(prev);
                 }
-                fragmentTransaction.addToBackStack(null);
-                ChatDialogFragment chatDialogFragment=ChatDialogFragment.newInstance(chatMessageArrayList);
-                chatDialogFragment.setTargetFragment(GameFragment.this,CHAT_FRAGMENT_REQUEST_CODE); //it will set the target fragment
-                // which will be called on pressing back button when dialog is opened.
+                if (fragmentTransaction != null) {
+                    fragmentTransaction.addToBackStack(null);
+                    ChatDialogFragment chatDialogFragment=ChatDialogFragment.newInstance(chatMessageArrayList);
+                    chatDialogFragment.setTargetFragment(GameFragment.this,CHAT_FRAGMENT_REQUEST_CODE); //it will set the target fragment
+                    // which will be called on pressing back button when dialog is opened.
 
-                //when user will open chat dialog fragment then i will make chatCount=0
-                chatCount=0;
-                chatCountImageView.setImageResource(0); //removing text drawable from imageview
-                chatDialogFragment.show(fragmentTransaction,"dialog");
+                    //when user will open chat dialog fragment then i will make chatCount=0
+                    chatCount=0;
+                    chatCountImageView.setImageResource(0); //removing text drawable from imageview
+                    chatDialogFragment.show(fragmentTransaction,"dialog");
+                }
+
                 break;
             case R.id.startButton:
                 startButtonSound();
@@ -681,7 +700,9 @@ public class GameFragment extends Fragment implements View.OnClickListener {
         if(requestCode==CHAT_FRAGMENT_REQUEST_CODE){
             if(resultCode== Activity.RESULT_OK){
                 Bundle bundle=data.getExtras();
-                chatMessageArrayList=(ArrayList<Message>)bundle.getSerializable("chatMessageArrayList");
+                if (bundle != null) {
+                    chatMessageArrayList=(ArrayList<Message>)bundle.getSerializable("chatMessageArrayList");
+                }
                 context=getContext(); //setting context again after coming from dialog fragment.
             }
         }
@@ -690,32 +711,35 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     private void storeTheGameObjectIntoFirebase() {
         showKProgress();
 
-        userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int flag=0;
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("game")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")){
                         flag=1;
                         Game game=itemSnapshot.getValue(Game.class);
-                        int totalGame=game.getTotalGame();
-                        totalGame+=1;
-                        game.setNoOfBingo(0);
-                        game.setChoosenNumber(0);
-                        game.setTotalGame(totalGame);
-                        game.setWantToPlayAgain(2);
-                        boolean mychance=game.isMyChance();
-                        if(mychance)
-                            game.setMyChance(false);
-                        else
-                            game.setMyChance(true);
-                        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").setValue(game).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful())
-                                    checkMyChance();
-                            }
-                        });
+                        int totalGame= 0;
+                        if (game != null) {
+                            totalGame = game.getTotalGame();
+                            totalGame += 1;
+                            game.setNoOfBingo(0);
+                            game.setChoosenNumber(0);
+                            game.setTotalGame(totalGame);
+                            game.setWantToPlayAgain(2);
+                            boolean mychance = game.isMyChance();
+                            if (mychance)
+                                game.setMyChance(false);
+                            else
+                                game.setMyChance(true);
+                            userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").setValue(game).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful())
+                                        checkMyChance();
+                                    }
+                            });
+                        }
                     }
                 }
                 //if it is the first match then there will be no game object and hence this if statement will execute
@@ -731,7 +755,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             int flag=0;
                             for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                                if(itemSnapshot.getKey().equalsIgnoreCase("to")){
+                                if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("to")){
                                     Log.i("inside","setting game object");
                                     flag=1;
                                     game.setMyChance(true);
@@ -786,28 +810,28 @@ public class GameFragment extends Fragment implements View.OnClickListener {
 
     private void checkMyChance() {
         //Below code will check the chance of player.
-        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").addChildEventListener(new ChildEventListener() {
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("game").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 //below if condition is used to check if both player are ready or not.
-                if(dataSnapshot.getKey().equalsIgnoreCase("myChance")){
+                if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("myChance")){
 
                     //Checking if other player is also ready or not.
                     userReference.child(Common.opponentPlayerUid).child("game").addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                             if(dataSnapshot.exists()) {
-                                if (dataSnapshot.getKey().equalsIgnoreCase("wantToPlayAgain")){
-                                    if(dataSnapshot.getValue(Integer.class)==2){
+                                if (Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("wantToPlayAgain")){
+                                    if(dataSnapshot.getValue(Integer.class) == 2){
                                         if (kProgressHUD.isShowing())
                                             kProgressHUD.dismiss(); //Dismiss the progress bar when both of the
     //                                     player is ready for playing.
                                         checkTheWinOfOpponent();
-                                    }else if(dataSnapshot.getValue(Integer.class)==1){
+                                    }else if(dataSnapshot.getValue(Integer.class) == 1){
                                         if(kProgressHUD.isShowing())
                                             kProgressHUD.dismiss();
                                         isGameOn=false;
-                                        Toast.makeText(context,"Your Opponent doesn't want to play",Toast.LENGTH_LONG).show();
+                                        Toast.makeText(context,"Your Opponent don't want to play",Toast.LENGTH_LONG).show();
                                     }
                                 }
                             }
@@ -820,16 +844,16 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                             // "wantToPlayAgain" and then this below method will
                             //disable the kprogress.
                             //
-                            if(dataSnapshot.getKey().equalsIgnoreCase("wantToPlayAgain")){
-                                if(dataSnapshot.getValue(Integer.class)==2){
+                            if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("wantToPlayAgain")){
+                                if(dataSnapshot.getValue(Integer.class) == 2){
                                     if(kProgressHUD.isShowing())
                                         kProgressHUD.dismiss();
                                     checkTheWinOfOpponent();
-                                }else if(dataSnapshot.getValue(Integer.class)==1){
+                                }else if(dataSnapshot.getValue(Integer.class) == 1){
                                     if(kProgressHUD.isShowing())
                                         kProgressHUD.dismiss();
                                     isGameOn=false;
-                                    Toast.makeText(context,"Your Opponent doesn't want to play",Toast.LENGTH_LONG).show();
+                                    Toast.makeText(context,"Your Opponent don't want to play",Toast.LENGTH_LONG).show();
                                 }
                             }
 
@@ -864,7 +888,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
 //                if(dataSnapshot.getKey().equalsIgnoreCase("myChance")){
 //                    isMyChance=(boolean)dataSnapshot.getValue();
 //                }
-                if(dataSnapshot.getKey().equalsIgnoreCase("choosenNumber")){
+                if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("choosenNumber")){
                     isMyChance=true;
                     opponentChoosenNumber=dataSnapshot.getValue(Integer.class);
                     whooseTurnTextView.setText("Opponent say's "+opponentChoosenNumber+". Please first tick " +
@@ -898,7 +922,7 @@ public class GameFragment extends Fragment implements View.OnClickListener {
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if(dataSnapshot.getKey().equalsIgnoreCase("noOfBingo")){
+                if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("noOfBingo")){
                     if(dataSnapshot.getValue(Integer.class) == 5){
                         //Show the player that you have lost the match
                         showGameResultAlertDialog(false);
@@ -978,11 +1002,13 @@ public class GameFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("game")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")){
                         Game game=itemSnapshot.getValue(Game.class);
-                        game.setChoosenNumber(choosenNumber);
-                        Log.i("chance","giving to other");
-                        userReference.child(opponentPlayerUid).child("game").setValue(game);
+                        if(game!=null) {
+                            game.setChoosenNumber(choosenNumber);
+                            Log.i("chance", "giving to other");
+                            userReference.child(opponentPlayerUid).child("game").setValue(game);
+                        }
                     }
                 }
             }
@@ -1083,11 +1109,11 @@ public class GameFragment extends Fragment implements View.OnClickListener {
             case 5:
                 bingoTextView.setText("B I N G O");
                 //Give a option to restart the match;
-                userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                            if(itemSnapshot.getKey().equalsIgnoreCase("game")){
+                            if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")){
                                 Game game=itemSnapshot.getValue(Game.class);
                                 if(game!=null) {
                                     int num = game.getNoOfGameIWin();
@@ -1112,58 +1138,62 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     }
 
     public void showGameResultAlertDialog(boolean result){
-        final AlertDialog alertDialog=new AlertDialog.Builder(context).create();
-        View view=LayoutInflater.from(context).inflate(R.layout.game_result_alert_dialog_layout,null,false);
-        wonOrLossTextView=view.findViewById(R.id.wonOrLossTextView);
-        yesButton=view.findViewById(R.id.yesButton);
-        noButton=view.findViewById(R.id.noButton);
-        if(result) {
-            wonOrLossTextView.setText("You Won This Match");
-            wonOrLossTextView.setTextColor(getResources().getColor(R.color.md_green_600));
-        }
-        else {
-            wonOrLossTextView.setText("You Loss This Match");
-            wonOrLossTextView.setTextColor(getResources().getColor(R.color.md_red_500));
-        }
-        noButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Remove him from the game Fragment
-                alertDialog.dismiss();
-                //setting the value of wanttoplayAgain 1
-                userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                            if(itemSnapshot.getKey().equalsIgnoreCase("game")){
-                                Game game=itemSnapshot.getValue(Game.class);
-                                if (game != null) {
-                                    game.setWantToPlayAgain(1);
-                                    userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").setValue(game);
+
+        try {
+            final AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+            View view = LayoutInflater.from(context).inflate(R.layout.game_result_alert_dialog_layout, null, false);
+            wonOrLossTextView = view.findViewById(R.id.wonOrLossTextView);
+            yesButton = view.findViewById(R.id.yesButton);
+            noButton = view.findViewById(R.id.noButton);
+            if (result) {
+                wonOrLossTextView.setText("You Won This Match");
+                wonOrLossTextView.setTextColor(getResources().getColor(R.color.md_green_600));
+            } else {
+                wonOrLossTextView.setText("You Loss This Match");
+                wonOrLossTextView.setTextColor(getResources().getColor(R.color.md_red_500));
+            }
+            noButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Remove him from the game Fragment
+                    alertDialog.dismiss();
+                    //setting the value of wanttoplayAgain 1
+                    userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for (DataSnapshot itemSnapshot : dataSnapshot.getChildren()) {
+                                if (Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("game")) {
+                                    Game game = itemSnapshot.getValue(Game.class);
+                                    if (game != null) {
+                                        game.setWantToPlayAgain(1);
+                                        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("game").setValue(game);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
-            }
-        });
-        yesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alertDialog.dismiss();
-                if (getFragmentManager() != null) {
-                    Toast.makeText(context,"Restarting The Game",Toast.LENGTH_SHORT).show();
-                    addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
+                        }
+                    });
                 }
-            }
-        });
-        alertDialog.setView(view);
-        alertDialog.show();
+            });
+            yesButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    alertDialog.dismiss();
+                    if (getFragmentManager() != null) {
+                        Toast.makeText(context, "Restarting The Game", Toast.LENGTH_SHORT).show();
+                        addDifferentFragment(GameFragment.newInstance(null), "gameFragment");
+                    }
+                }
+            });
+            alertDialog.setView(view);
+            alertDialog.show();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private void showKProgress() {

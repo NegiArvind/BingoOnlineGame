@@ -95,15 +95,17 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
         //Saving two int value in shared preference. 1 for on and 2 for off.
         sharedPreferences=context.getSharedPreferences("arvindandroid.com.arvind.bingoonlinegame",Context.MODE_PRIVATE);
-        int volumeValue=sharedPreferences.getInt("volumeValue",0);
-        if(volumeValue==0){
-            //it is a default value. So i need to set volumeValue to 1 which means on
-            sharedPreferences.edit().putInt("volumeValue",1).apply();
-            volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.volume_on_image)); //by default setting volume on image
-        }else if(volumeValue==1){
-            volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.volume_on_image));
-        }else{
-            volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.value_off_image));
+        if(sharedPreferences!=null) {
+            int volumeValue = sharedPreferences.getInt("volumeValue", 0);
+            if (volumeValue == 0) {
+                //it is a default value. So i need to set volumeValue to 1 which means on
+                sharedPreferences.edit().putInt("volumeValue", 1).apply();
+                volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.volume_on_image)); //by default setting volume on image
+            } else if (volumeValue == 1) {
+                volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.volume_on_image));
+            } else {
+                volumeImageButton.setImageDrawable(getResources().getDrawable(R.drawable.value_off_image));
+            }
         }
 
         return view;
@@ -121,8 +123,8 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.rateUsCardView:
-//                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
-                rateMeFunction();
+                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
+//                rateMeFunction();
                 break;
 
             case R.id.settingImageButton:
@@ -224,13 +226,13 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 //        final boolean[] isAnyOnline = {false};
         //Using Firebase Recycler Adapter
         onlinePlayerRecyclerAdapter=new FirebaseRecyclerAdapter<User, OnlinePlayerViewHolder>(User.class,
-                R.layout.online_player_raw_layout,OnlinePlayerViewHolder.class,usersReference) {
+                R.layout.online_player_raw_layout,OnlinePlayerViewHolder.class,usersReference.orderByChild("online").equalTo(true)) {
             @Override
             protected void populateViewHolder(OnlinePlayerViewHolder viewHolder, User model, int position) {
                 Log.i("playeruId",onlinePlayerRecyclerAdapter.getRef(position).getKey());
                 boolean isMe=firebaseAuth.getCurrentUser().getUid().equalsIgnoreCase(onlinePlayerRecyclerAdapter.getRef(position).getKey());
                 Log.i("online ",model.isOnline() +" "+isMe);
-                if(model.isOnline()&& !isMe){
+                if(!isMe){
 //                    isAnyOnline[0] =true;
                     if(onlinePlayerProgressBar!=null){
                         onlinePlayerProgressBar.setVisibility(View.GONE);
@@ -238,9 +240,15 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                     setOnlinePlayerData(viewHolder,model,onlinePlayerRecyclerAdapter.getRef(position).getKey());
                 }
                 else{
-                    viewHolder.playerImageView.setVisibility(View.GONE);
-                    viewHolder.dotImageView.setVisibility(View.GONE);
-                    viewHolder.playerNameTextView.setVisibility(View.GONE);
+//                    viewHolder.onlineLinearLayout.setLayoutParams(new RecyclerView.LayoutParams(0,0));
+                    viewHolder.itemView.setVisibility(View.GONE);
+//                    viewHolder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0,0));
+//                    viewHolder.playerImageView.setVisibility(View.GONE);
+//                    viewHolder.dotImageView.setVisibility(View.GONE);
+//                    viewHolder.playerNameTextView.setVisibility(View.GONE);
+//                    viewHolder.playerImageView.setLayoutParams(new RecyclerView.LayoutParams(0,0));
+//                    viewHolder.dotImageView.setLayoutParams(new RecyclerView.LayoutParams(0,0));
+//                    viewHolder.playerNameTextView.setLayoutParams(new RecyclerView.LayoutParams(0,0));
                 }
             }
         };
@@ -273,7 +281,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
     private void onPlayerClick(final String playerUid, final String playerName){
         ProgressDialogUtils.showLoadingDialog(context,"Request Sending...");
         //if game node is already there it means that the player is already playing the game.
-        usersReference.child(playerUid).child("game").addListenerForSingleValueEvent(new ValueEventListener() {
+        usersReference.child(playerUid).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
@@ -282,7 +290,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                     ProgressDialogUtils.cancelLoading();
                 }else{
                     final Request request=new Request();
-                    request.setFromName(firebaseAuth.getCurrentUser().getDisplayName());
+                    request.setFromName(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getDisplayName());
                     request.setFrom(firebaseAuth.getCurrentUser().getUid());
                     usersReference.child(playerUid).child("request").setValue(request);
 
@@ -325,7 +333,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
     //This below function will continuously check if there is any request for current user.
     private void checkAnyRequests(){
-        usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").addChildEventListener(new ChildEventListener() {
+        usersReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if(dataSnapshot.exists()){
@@ -396,7 +404,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                    if(itemSnapshot.getKey().equalsIgnoreCase("username")){
+                    if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("username")){
                         Common.opponentUserName=itemSnapshot.getValue(String.class);
                     }else if(itemSnapshot.getKey().equalsIgnoreCase("imageUrl")){
                         Common.opponentImageUrl=itemSnapshot.getValue(String.class);
@@ -413,7 +421,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
     private void showRequestAlertDialog(String sendRequestPlayerName) {
         final AlertDialog.Builder alertDialog=new AlertDialog.Builder(context);
-        alertDialog.setMessage("Do You want to accept "+sendRequestPlayerName+" Request?");
+        alertDialog.setMessage("Do you want to accept "+sendRequestPlayerName+" request?");
         alertDialog.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, int which) {
@@ -447,7 +455,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
     //This below method will update the acceptRequest field of Request object.
     private void manipulatingAcceptRequest(final boolean isAccept){
-        usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
+        usersReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if(dataSnapshot.exists()) {
@@ -487,14 +495,16 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                         String requestAccept = dataSnapshot.getValue(String.class);
 //                        String requestAccept=dataSnapshot.child("requestAccept").getValue(String.class);
                         Log.i("requestAccept ", " " + requestAccept);
-                        if (requestAccept.equalsIgnoreCase("true")) {
-                            goForPlay(); //if both player accepted request
-                        } else {
-                            //Discard
-                            Toast.makeText(context,Common.opponentUserName
-                                    +" discard your request. Go for another opponent",Toast.LENGTH_LONG).show();
-                            usersReference.child(opponentPlayerUid).child("request").removeValue(); //removing the request
-                            // from opponent node if he discard the request.
+                        if (requestAccept != null) {
+                            if (requestAccept.equalsIgnoreCase("true")) {
+                                goForPlay(); //if both player accepted request
+                            } else {
+                                //Discard
+                                Toast.makeText(context,Common.opponentUserName
+                                        +" discard your request. Go for another opponent",Toast.LENGTH_LONG).show();
+                                usersReference.child(opponentPlayerUid).child("request").removeValue(); //removing the request
+                                // from opponent node if he discard the request.
+                            }
                         }
                         ProgressDialogUtils.cancelLoading();
                     }
@@ -523,11 +533,14 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
     private void goForPlay() {
         Log.i("start","playing the game");
-        Toast.makeText(context,"Start playing game",Toast.LENGTH_LONG).show();
-        if(onlinePlayerAlertDialog.isShowing()) {
-            onlinePlayerAlertDialog.dismiss();
-        }
+        //Toast.makeText(context,"Start playing game",Toast.LENGTH_LONG).show();
+
         if (getFragmentManager() != null) {
+            if(getFragmentManager().findFragmentByTag("playOptionFragment") instanceof PlayOptionFragment) {
+                if (onlinePlayerAlertDialog!=null && onlinePlayerAlertDialog.isShowing()) {
+                    onlinePlayerAlertDialog.dismiss();
+                }
+            }
 //            getFragmentManager().beginTransaction().replace(R.id.frameLayout,GameFragment.newInstance(null)).commit();
             addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
         }
