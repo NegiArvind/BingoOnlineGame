@@ -1,8 +1,10 @@
 package arvindandroid.com.arvind.bingoonlinegame.Activities;
 
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
@@ -235,9 +237,21 @@ public class LoginActivity extends AppCompatActivity {
         if(firebaseAuth.getCurrentUser()!=null){
             Log.i("authe",firebaseAuth.getCurrentUser().getDisplayName());
             makeUserOnline(firebaseAuth.getCurrentUser());
+            deleteGameChatAndRequestIfExist();//it will delete the game,chat and request object from user node. if By chance user
+            //remove your app from home button then game,chat and request object will not be deleted.So i deleting it here.
             updateUI(firebaseAuth.getCurrentUser());
+//            checkUpdateOfApp(); //Want to show update dialog if i will make any update in my app.
         }
     }
+
+    private void deleteGameChatAndRequestIfExist() {
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("game").removeValue();
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
+        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
+    }
+
+
+
 
     private void makeUserOnline(final FirebaseUser currentUser) {
         if(currentUser!=null) {

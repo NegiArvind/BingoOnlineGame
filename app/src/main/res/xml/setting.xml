@@ -40,6 +40,11 @@
             android:summary="Share this app with friends"/>
 
         <Preference
+            android:key="privacyPolicy"
+            android:title="Privacy Policy"
+            app:iconSpaceReserved="false"/>
+
+        <Preference
             android:key="logOut"
             android:title="Log Out"
             app:iconSpaceReserved="false"/>
@@ -47,15 +52,5 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:iconSpaceReserved="false"
-        android:title="Others">
-
-        <Preference
-            android:key="privacyPolicy"
-            android:title="Privacy Policy"
-            app:iconSpaceReserved="false"/>
-
-    </PreferenceCategory>
 
 </PreferenceScreen>

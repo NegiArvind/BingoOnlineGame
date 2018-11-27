@@ -121,8 +121,8 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.rateUsCardView:
-                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
-//                rateMeFunction();
+//                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
+                rateMeFunction();
                 break;
 
             case R.id.settingImageButton:
