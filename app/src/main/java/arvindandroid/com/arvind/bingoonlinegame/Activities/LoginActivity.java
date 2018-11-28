@@ -41,6 +41,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Objects;
+
 import arvindandroid.com.arvind.bingoonlinegame.Common;
 import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
@@ -174,7 +176,9 @@ public class LoginActivity extends AppCompatActivity {
         try {
             // Google Sign In was successful, authenticate with Firebase
             GoogleSignInAccount account = task.getResult(ApiException.class);
-            firebaseAuthWithGoogle(account);
+            if (account != null) {
+                firebaseAuthWithGoogle(account);
+            }
 
         } catch (ApiException e) {
             // Google Sign In failed, update UI appropriately
@@ -250,7 +254,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void deleteGameChatAndRequestIfExist() {
-        usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("game").removeValue();
+        usersReference.child("Users").child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("game").removeValue();
         usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
         usersReference.child("Users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
     }
@@ -260,11 +264,11 @@ public class LoginActivity extends AppCompatActivity {
 
     private void makeUserOnline(final FirebaseUser currentUser) {
         if(currentUser!=null) {
-            usersReference.child("Users").child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            usersReference.child("Users").child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                        if(itemSnapshot.getKey().equalsIgnoreCase("online")){
+                        if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("online")){
                             usersReference.child("Users").child(currentUser.getUid()).child("online").setValue(true);
                             break;
                         }
@@ -303,10 +307,10 @@ public class LoginActivity extends AppCompatActivity {
 //    }
 
     private void updateUI(FirebaseUser user) {
-        ProgressDialogUtils.cancelLoading();
-        Common.myUid=firebaseAuth.getCurrentUser().getUid();
-        User.setCurrentUser(user.getDisplayName(),user.getPhotoUrl().toString());
         if(user!=null) {
+            ProgressDialogUtils.cancelLoading();
+            Common.myUid = user.getUid();
+            User.setCurrentUser(user.getDisplayName(), user.getPhotoUrl().toString());
             Intent intent = new Intent(LoginActivity.this, OptionsActivity.class);
             startActivity(intent);
         }
