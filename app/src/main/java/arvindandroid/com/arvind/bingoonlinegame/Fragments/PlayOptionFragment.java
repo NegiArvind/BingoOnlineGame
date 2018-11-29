@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -42,6 +43,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.kaopiz.kprogresshud.KProgressHUD;
 import com.squareup.picasso.Picasso;
 
+import java.util.Locale;
 import java.util.Objects;
 
 import arvindandroid.com.arvind.bingoonlinegame.Activities.OptionsActivity;
@@ -70,15 +72,22 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
     private SharedPreferences sharedPreferences;
     private ProgressBar onlinePlayerProgressBar;
     private MediaPlayer mediaPlayer;
+    private ChildEventListener requestChildeEventListener;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        usersReference= FirebaseDatabase.getInstance().getReference("Users");
+        firebaseAuth=FirebaseAuth.getInstance();
+        checkAnyRequests(); //Check the request continuously if any
+
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
         View view=inflater.inflate(R.layout.play_options_fragment,container,false);
         context=getActivity();
-        usersReference= FirebaseDatabase.getInstance().getReference("Users");
-        firebaseAuth=FirebaseAuth.getInstance();
-        checkAnyRequests(); //Check the request continuously if any
         playOnlineCardView=view.findViewById(R.id.playOnlineCardView);
         rateUsCardView=view.findViewById(R.id.rateUsCardView);
         howToPlayCardView=view.findViewById(R.id.howToPlayCardView);
@@ -108,6 +117,8 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
             }
         }
 
+
+
         return view;
     }
     @Override
@@ -123,8 +134,8 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                 break;
 
             case R.id.rateUsCardView:
-                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
-//                rateMeFunction();
+//                addDifferentFragment(GameFragment.newInstance(null),"gameFragment");
+                rateMeFunction();
                 break;
 
             case R.id.settingImageButton:
@@ -333,7 +344,30 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
 
     //This below function will continuously check if there is any request for current user.
     private void checkAnyRequests(){
-        usersReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addChildEventListener(new ChildEventListener() {
+//        usersReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if(dataSnapshot.exists()) {
+//                    for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+//                        if(Objects.requireNonNull(dataSnapshot1.getKey()).equalsIgnoreCase("from")){
+//                            Common.opponentPlayerUid=dataSnapshot1.getValue(String.class);
+//                            saveOpponentNameAndImageUrl(dataSnapshot1.getValue(String.class));
+//                        }else if(dataSnapshot1.getKey().equalsIgnoreCase("fromName")){
+//                            String fromName=dataSnapshot1.getValue(String.class);
+//                            Log.i("request send name ",fromName);
+//                            showRequestAlertDialog(fromName);
+////                            FirebaseDatabase.getInstance().getReference().removeEventListener(requestChildeEventListener);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+        requestChildeEventListener=usersReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if(dataSnapshot.exists()){
@@ -344,6 +378,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                         String fromName=dataSnapshot.getValue(String.class);
                         Log.i("request send name ",fromName);
                         showRequestAlertDialog(fromName);
+                        usersReference.child(firebaseAuth.getCurrentUser().getUid()).child("request").removeEventListener(requestChildeEventListener);
                     }
                 }
             }
@@ -398,7 +433,6 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
             }
         });
     }
-
     private void saveOpponentNameAndImageUrl(String opponentPlayerUid) {
         usersReference.child(opponentPlayerUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -426,6 +460,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
             @Override
             public void onClick(final DialogInterface dialog, int which) {
                 dialog.dismiss();
+                dialog.cancel();
                 showKProgress("Please Wait...","Getting you in");
                 //If player will accept the request then we need to update Request object.
                 manipulatingAcceptRequest(true);
@@ -435,7 +470,6 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
-                //If player will deny the request then we need to update Request object.
                 manipulatingAcceptRequest(false);
             }
         });
@@ -549,7 +583,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
     private int countNoOfColumns(Context context) {
         DisplayMetrics displayMetrics=context.getResources().getDisplayMetrics();
         float dpWidth=displayMetrics.widthPixels/displayMetrics.density;
-        return (int)(dpWidth/ 90);
+        return (int)(dpWidth/ 110);
     }
 
     public static PlayOptionFragment newInstance() {

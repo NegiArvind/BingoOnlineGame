@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -41,6 +42,7 @@ import com.kaopiz.kprogresshud.KProgressHUD;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 
 import arvindandroid.com.arvind.bingoonlinegame.Activities.OptionsActivity;
@@ -89,6 +91,8 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     private ImageView chatCountImageView;
     private SharedPreferences sharedPreferences;
     private MediaPlayer mediaPlayer,bingoMediaPlayer;
+    private TextToSpeech textToSpeech;
+    private ChildEventListener opponentLeaveChildEventListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -144,6 +148,15 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                 setBingoGridByDefaultBingoArray();
             }
         }
+
+        textToSpeech=new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    textToSpeech.setLanguage(Locale.UK);
+                }
+            }
+        });
 
         return view;
     }
@@ -379,7 +392,8 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     }
 
     private void checkOpponentLeaveGame() {
-        userReference.child(Common.opponentPlayerUid).addChildEventListener(new ChildEventListener() {
+
+        opponentLeaveChildEventListener=userReference.child(Common.opponentPlayerUid).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
@@ -393,7 +407,13 @@ public class GameFragment extends Fragment implements View.OnClickListener {
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
                 if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("game")){
-                    showOpponentLeaveAlertDialog();
+                    if(getFragmentManager()!=null){
+                        Fragment gameFragment=getFragmentManager().findFragmentByTag("gameFragment");
+                        if(gameFragment!=null && gameFragment.isVisible()){
+                            showOpponentLeaveAlertDialog();
+                            userReference.child(Common.opponentPlayerUid).removeEventListener(opponentLeaveChildEventListener);
+                        }
+                    }
                 }
             }
 
@@ -422,6 +442,8 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                 .setPositiveButton("quit", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+
                         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
                         //delete user game object,chat object and request object
                         deleteGameRequestAndChatObject();
@@ -877,8 +899,14 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                     isMyChance=(boolean)dataSnapshot.getValue();
                     if(isMyChance){
                         whooseTurnTextView.setText("Now it's your turn");
+                        if(sharedPreferences.getInt("volumeValue",0)==1){
+                            textToSpeech.speak("Now it's your turn",TextToSpeech.QUEUE_FLUSH,null);
+                        }
                     }else{
                         whooseTurnTextView.setText("Opponent's turn. Wait for some time.");
+                        if(sharedPreferences.getInt("volumeValue",0)==1){
+                            textToSpeech.speak("Opponent's turn. Wait for some time",TextToSpeech.QUEUE_FLUSH,null);
+                        }
                     }
                 }
             }
@@ -891,8 +919,12 @@ public class GameFragment extends Fragment implements View.OnClickListener {
                 if(Objects.requireNonNull(dataSnapshot.getKey()).equalsIgnoreCase("choosenNumber")){
                     isMyChance=true;
                     opponentChoosenNumber=dataSnapshot.getValue(Integer.class);
-                    whooseTurnTextView.setText("Opponent say's "+opponentChoosenNumber+". Please first tick " +
-                            "this number and then choose your number");
+                    String message="Opponent say's "+opponentChoosenNumber+". Please first tick " +
+                            "this number and then choose your number";
+                    whooseTurnTextView.setText(message);
+                    if(sharedPreferences.getInt("volumeValue",0)==1){
+                        textToSpeech.speak(String.valueOf(opponentChoosenNumber),TextToSpeech.QUEUE_FLUSH,null);
+                    }
                 }
             }
 
@@ -1220,5 +1252,15 @@ public class GameFragment extends Fragment implements View.OnClickListener {
     public void onResume() {
         super.onResume();
         ((OptionsActivity)context).setActionBarTitle("Bingo Online");
+    }
+
+    @Override
+    public void onDestroy() {
+        // Don't forget to shutdown!
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+        super.onDestroy();
     }
 }

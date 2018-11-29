@@ -47,57 +47,8 @@ public class OptionsActivity extends AppCompatActivity {
             finishAffinity();
             finish();
         }
-        checkUpdateOfApp();
+//        checkUpdateOfApp();
         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
-    }
-    private void checkUpdateOfApp() {
-        FirebaseDatabase.getInstance().getReference("update").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists()){
-                    showUpdateAlertDialog(dataSnapshot.getValue(String.class));
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void showUpdateAlertDialog(String message) {
-        new AlertDialog.Builder(this)
-                .setMessage(message)
-                .setTitle("Update")
-                .setNegativeButton("Later", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                })
-                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        openGooglePlayStore();
-                    }
-                }).show();
-    }
-
-    private void openGooglePlayStore() {
-        Uri uri = Uri.parse("market://details?id=" + this.getPackageName());
-        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
-        // To count with Play market backstack, After pressing back button,
-        // to taken back to our application, we need to add following flags to intent.
-        goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
-                Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
-                Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-        try {
-            startActivity(goToMarket);
-        } catch (ActivityNotFoundException e) {
-            startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("http://play.google.com/store/apps/details?id=" + this.getPackageName())));
-        }
     }
 
     private void addDifferentFragment(Fragment fragment,String tag) {
