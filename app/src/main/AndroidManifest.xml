@@ -48,6 +48,9 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <service android:name=".Service.MyService"
+            android:stopWithTask="false"/>
     </application>
 
 </manifest>

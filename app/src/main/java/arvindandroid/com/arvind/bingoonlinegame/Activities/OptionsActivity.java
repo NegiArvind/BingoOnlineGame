@@ -28,6 +28,7 @@ import arvindandroid.com.arvind.bingoonlinegame.Fragments.HowToPlayFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.PlayOptionFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.SettingFragment;
 import arvindandroid.com.arvind.bingoonlinegame.R;
+import arvindandroid.com.arvind.bingoonlinegame.Service.MyService;
 import arvindandroid.com.arvind.bingoonlinegame.Utils.NetworkCheck;
 
 public class OptionsActivity extends AppCompatActivity {
@@ -49,6 +50,8 @@ public class OptionsActivity extends AppCompatActivity {
         }
 //        checkUpdateOfApp();
         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
+        
+        startService(new Intent(OptionsActivity.this, MyService.class));
     }
 
     private void addDifferentFragment(Fragment fragment,String tag) {
