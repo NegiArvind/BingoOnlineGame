@@ -22,6 +22,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +73,8 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
     private SharedPreferences sharedPreferences;
     private ProgressBar onlinePlayerProgressBar;
     private MediaPlayer mediaPlayer;
-    private ChildEventListener requestChildeEventListener;
+    private ChildEventListener requestChildeEventListener,allUserChildEventListener;
+    private ValueEventListener allUserValueEventListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -227,7 +229,6 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
         onlinePlayersRecyclerView.setLayoutManager(gridLayoutManager);
         onlinePlayerProgressBar=view.findViewById(R.id.onlinePlayerProgressBar);
         showAllOnlinePlayers();
-
         onlinePlayerAlertDialog.setView(view);
         checkNewUsers();
         onlinePlayerAlertDialog.show();
@@ -249,6 +250,7 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                         onlinePlayerProgressBar.setVisibility(View.GONE);
                     }
                     setOnlinePlayerData(viewHolder,model,onlinePlayerRecyclerAdapter.getRef(position).getKey());
+                    Log.i("playerName",model.getUsername());
                 }
                 else{
 //                    viewHolder.onlineLinearLayout.setLayoutParams(new RecyclerView.LayoutParams(0,0));
@@ -263,10 +265,58 @@ public class PlayOptionFragment extends Fragment implements View.OnClickListener
                 }
             }
         };
+        final int[] countOnlineUser = {0};
         onlinePlayersRecyclerView.setAdapter(onlinePlayerRecyclerAdapter);
-//        if(!isAnyOnline[0]){
-//            Toast.makeText(context,"There are no online Player at this time",Toast.LENGTH_LONG).show();
-//        }
+        allUserChildEventListener=usersReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                User user=dataSnapshot.getValue(User.class);
+                if(user!=null && user.isOnline() && !dataSnapshot.getKey().equalsIgnoreCase(firebaseAuth.getCurrentUser().getUid())){
+                    countOnlineUser[0]++;
+                    Log.i("counting",String.valueOf(countOnlineUser[0]));
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        allUserValueEventListener=usersReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(countOnlineUser[0] ==0){
+                    Log.i("counting","Later on"+ countOnlineUser[0]);
+                    if(onlinePlayerProgressBar!=null){
+                        onlinePlayerProgressBar.setVisibility(View.GONE);
+                    }
+                    Toast toast=Toast.makeText(context,"No users are online",Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER,0,0);
+                    toast.show();
+                    usersReference.removeEventListener(allUserChildEventListener);
+                    usersReference.removeEventListener(allUserValueEventListener);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void setOnlinePlayerData(OnlinePlayerViewHolder viewHolder, final User user, final String playerId) {
