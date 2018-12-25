@@ -27,7 +27,9 @@ import arvindandroid.com.arvind.bingoonlinegame.Fragments.GameFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.HowToPlayFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.PlayOptionFragment;
 import arvindandroid.com.arvind.bingoonlinegame.Fragments.SettingFragment;
+import arvindandroid.com.arvind.bingoonlinegame.Models.User;
 import arvindandroid.com.arvind.bingoonlinegame.R;
+import arvindandroid.com.arvind.bingoonlinegame.Service.MyService;
 import arvindandroid.com.arvind.bingoonlinegame.Utils.NetworkCheck;
 
 public class OptionsActivity extends AppCompatActivity {
@@ -49,6 +51,25 @@ public class OptionsActivity extends AppCompatActivity {
         }
 //        checkUpdateOfApp();
         addDifferentFragment(PlayOptionFragment.newInstance(),"playOptionFragment");
+//
+//        userReference.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
+//                    User user=itemSnapshot.getValue(User.class);
+//                    user.setOnline(false);
+//                    user.setGame(null);
+//                    user.setRequest(null);
+//                    userReference.child(itemSnapshot.getKey()).setValue(user);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+//        startService(new Intent(OptionsActivity.this, MyService.class));
     }
 
     private void addDifferentFragment(Fragment fragment,String tag) {
@@ -103,32 +124,31 @@ public class OptionsActivity extends AppCompatActivity {
         }else{
             //if there is a request object
             userReference.child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("request").removeValue();
-            makeUserOffline();
+            exitAlertDialog();
+            makeUserOfflineOrOnline(false);
         }
     }
 
-    private void makeUserOffline() {
+    private void makeUserOfflineOrOnline(final Boolean isOnline) {
 //        showKProgress();
-        exitAlertDialog();
-        if(firebaseAuth.getCurrentUser()!=null) {
-            userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
-                        if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("online")){
-                            userReference.child(firebaseAuth.getCurrentUser().getUid()).child("online").setValue(false);
-                             //once user is set to offline then we will show alert dialog
-                            break;
+            if(firebaseAuth.getCurrentUser()!=null) {
+                userReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for(DataSnapshot itemSnapshot:dataSnapshot.getChildren()){
+                            if(Objects.requireNonNull(itemSnapshot.getKey()).equalsIgnoreCase("online")){
+                                userReference.child(firebaseAuth.getCurrentUser().getUid()).child("online").setValue(isOnline);
+                                break;
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                }
-            });
-        }
+                    }
+                });
+            }
     }
 
     private void leaveGameAlertDialog() {
@@ -152,7 +172,19 @@ public class OptionsActivity extends AppCompatActivity {
     }
     private void deleteGameRequestAndChatObject(){
         userReference.child(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).child("game").removeValue();
-        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("request").removeValue();
-        userReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("chat").removeValue();
+        userReference.child(Objects.requireNonNull(firebaseAuth.getCurrentUser()).getUid()).child("request").removeValue();
+        userReference.child(firebaseAuth.getCurrentUser().getUid()).child("chat").removeValue();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        makeUserOfflineOrOnline(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        makeUserOfflineOrOnline(false);
     }
 }
